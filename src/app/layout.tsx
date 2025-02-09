@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+// In _app.tsx or a global CSS file
+import '@fortawesome/fontawesome-svg-core/styles.css';
+import { config } from '@fortawesome/fontawesome-svg-core';
+config.autoAddCss = false; // Tell FontAwesome not to add its CSS automatically
+
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

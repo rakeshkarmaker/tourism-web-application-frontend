@@ -12,7 +12,7 @@ export default function DashboardIndex() {
 
   useEffect(() => {
     // Use router.replace so that the navigation does not add a new history entry.
-    router.replace(`/dashboard/${userId}/overview`);
+    router.replace(`/dashboard/overview`);
   }, [router, userId]);
 
   return <p>Redirecting to Overview...</p>;

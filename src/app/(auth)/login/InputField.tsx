@@ -1,5 +1,5 @@
 //This component makes the input fields reusable and accessible.
-
+'use scrict';
 import React from "react";
 
 interface InputFieldProps {

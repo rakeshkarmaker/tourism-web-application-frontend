@@ -5,8 +5,13 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { rootURL } from '../../../../constant';
+import useAuthRedirect from '@/app/_components/hooks/useAuthRedirect';
+
+
 
 const SignIn = () => {
+    // Call the useAuthRedirect hook to redirect logged-in users to the dashboard
+    useAuthRedirect("/dashboard/overview");
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -14,7 +19,7 @@ const SignIn = () => {
     });
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-
+    
     useEffect(() => {// Retrieve data from cookies if rememberMe is true
         const storedEmail = Cookies.get('email');
         const storedRememberMe = Cookies.get('rememberMe');
@@ -77,7 +82,7 @@ const SignIn = () => {
 
                 // Redirect after a short delay to allow success message to be visible
                 setTimeout(() => {
-                    window.location.href = `/dashboard/${data.user.id}`;
+                    window.location.href = `/dashboard`;
                 }, 1000);
             } else {
                 setError(data.message || 'Invalid email or password');

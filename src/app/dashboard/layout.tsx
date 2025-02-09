@@ -1,7 +1,7 @@
 
 // src/app/dashboard/[userId]/layout.tsx
 import React from 'react';
-import Navbar from '../../_components/navbar/page';
+import Navbar from '../_components/navbar/page';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
