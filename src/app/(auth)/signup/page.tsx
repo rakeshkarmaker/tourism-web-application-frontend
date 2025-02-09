@@ -1,337 +1,299 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
+import Cookies from 'js-cookie';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { rootURL } from '../../../../constant';
 import useAuthRedirect from '@/app/_components/hooks/useAuthRedirect';
-// Adjust the import path so that it correctly resolves the constant file
-import { rootURL } from '../../../../constant'; 
 
-export default function SignupPage() {
-  // If a valid token exists, the hook will redirect to the dashboard
-  useAuthRedirect("/dashboard/overview");
+const SignUp = () => {
+    useAuthRedirect("/dashboard/overview");
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+        phone_no: '',
+        address: '',
+        dob: '',
+        gender: 'Male',
+        nid_no: '',
+        nid_pic_path: '',
+        profile_pic_path: '',
+        description: '',
+        user_type: 'TourGuide'
+    });
+    const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
 
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    phone_no: '',
-    address: '',
-    dob: '',
-    gender: 'Male',
-    nid_no: '',
-    nid_pic_path: '',
-    profile_pic_path: '',
-    description: '',
-  });
-  const [nidFile, setNidFile] = useState<File | null>(null);
-  const [profileFile, setProfileFile] = useState<File | null>(null);
-  const [error, setError] = useState('');
-  const [token, setToken] = useState<string | null>(null);
+    const handleInputChange = (e: any) => {
+        const { name, value, type } = e.target;
+        setFormData((prevState) => ({
+            ...prevState,
+            [name]: type === 'date' ? value : value
+        }));
+    };
 
-  // Retrieve token from cookies on the client side
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedToken = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('access_token='))?.split('=')[1];
-      setToken(storedToken || null);
-    }
-  }, []);
+    const handleSubmit = async (e: any) => {
+        e.preventDefault();
+        setError('');
+        setSuccessMessage('');
 
-  const handleNidFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setNidFile(e.target.files[0]);
-    }
-  };
+        try {
+            const response = await fetch(`${rootURL}/auth/signup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
 
-  const handleProfileFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setProfileFile(e.target.files[0]);
-    }
-  };
+            const data = await response.json();
 
-  const handleUploadFile = async (file: File, folder: string) => {
-    if (!token) {
-      setError('No access token found. Please log in.');
-      return '';
-    }
+            if (response.ok) {
+                setSuccessMessage('Registration successful! Redirecting to login...');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+            } else {
+                setError(data.message || 'Registration failed. Please try again.');
+            }
+        } catch (err) {
+            const errorMessage = (err as any).message || 'Something went wrong. Please try again.';
+            setError(errorMessage);
+        }
+    };
 
-    const fileFormData = new FormData();
-    fileFormData.append('file', file);
+    return (
+        <div className="min-h-screen flex">
+            {/* Left Side - Background Image */}
+            <div className="hidden lg:block relative w-1/2">
+                <div className="relative h-full w-full overflow-hidden">
+                    <Image
+                        src="/login-bg.png"
+                        alt="Background"
+                        fill
+                        style={{
+                            objectFit: 'contain',
+                            objectPosition: 'center'
+                        }}
+                        quality={100}
+                        priority
+                        className="opacity-90"
+                    />
+                </div>
+            </div>
 
-    try {
-      const response = await fetch(`${rootURL}/file/upload?folder=${folder}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: fileFormData,
-      });
+            {/* Right Side - Form Content */}
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8">
+                <div className="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-lg shadow-xl p-6 sm:p-8">
+                    <div className="flex flex-col items-center mb-8">
+                        <div className="flex items-center mb-4">
+                            <Image
+                                src="/logo.png"
+                                alt="Tour Vally Logo"
+                                width={50}
+                                height={50}
+                            />
+                            <h1 className="text-2xl font-bold text-gray-800 ml-2">Tour Vally</h1>
+                        </div>
+                        <div className="flex items-center">
+                            <Link href="/signin" className="text-blue-600 hover:text-blue-500 text-sm hover:underline">
+                                Already Have An Account? <span className="font-semibold">Login</span>
+                            </Link>
+                        </div>
+                    </div>
 
-      const data = await response.json();
-      if (response.ok) {
-        return data.path;
-      } else {
-        setError(data.message || 'Failed to upload file.');
-        return '';
-      }
-    } catch (err) {
-      console.error(err);
-      setError('An unexpected error occurred during file upload.');
-      return '';
-    }
-  };
+                    <div className="text-center mb-8">
+                        <p className="text-gray-600 mb-6">PLEASE ENTER YOUR INFORMATION TO REGISTER</p>
+                        <h2 className="text-xl font-semibold text-gray-700 mb-4">Create New Account</h2>
+                    </div>
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Name */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    className="mt-1 block w-full rounded-md border border-blue-500 focus:border-blue-500 focus:ring-blue-500 text-black"
+                                    required
+                                />
+                            </div>
 
-    if (!token) {
-      setError('No access token found. Please log in.');
-      return;
-    }
+                            {/* Email */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Email</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                    className="mt-1 block w-full rounded-md border border-blue-500 focus:border-blue-500 focus:ring-blue-500 text-black"
+                                    required
+                                />
+                            </div>
+                        </div>
 
-    // Create a local copy of formData for accumulating updates
-    const updatedFormData = { ...formData };
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Password */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Password</label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    className="mt-1 block w-full rounded-md border border-blue-500 focus:border-blue-500 focus:ring-blue-500 text-black"
+                                    required
+                                />
+                            </div>
 
-    // Upload NID file (if selected) and update our local copy
-    if (nidFile) {
-      const nidPath = await handleUploadFile(nidFile, 'nidUpload');
-      if (nidPath) {
-        updatedFormData.nid_pic_path = nidPath;
-      } else {
-        return;
-      }
-    }
+                            {/* Phone Number */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+                                <input
+                                    type="tel"
+                                    name="phone_no"
+                                    value={formData.phone_no}
+                                    onChange={handleInputChange}
+                                    className="mt-1 block w-full rounded-md border border-blue-500 focus:border-blue-500 focus:ring-blue-500 text-black"
+                                    required
+                                />
+                            </div>
+                        </div>
 
-    // Upload Profile file (if selected) and update our local copy
-    if (profileFile) {
-      const profilePath = await handleUploadFile(profileFile, 'profilePic');
-      if (profilePath) {
-        updatedFormData.profile_pic_path = profilePath;
-      } else {
-        return;
-      }
-    }
+                        {/* Address */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Address</label>
+                            <input
+                                type="text"
+                                name="address"
+                                value={formData.address}
+                                onChange={handleInputChange}
+                                className="mt-1 block w-full rounded-md border border-blue-500 focus:border-blue-500 focus:ring-blue-500 text-black"
+                                required
+                            />
+                        </div>
 
-    try {
-      const response = await fetch('http://localhost:3000/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...updatedFormData,
-          user_type: "TourGuide",
-        }),
-      });
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Date of Birth */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+                                <input
+                                    type="date"
+                                    name="dob"
+                                    value={formData.dob}
+                                    onChange={handleInputChange}
+                                    className="mt-1 block w-full rounded-md border border-blue-500 focus:border-blue-500 focus:ring-blue-500 text-black"
+                                    required
+                                />
+                            </div>
 
-      if (!response.ok) {
-        throw new Error('Registration failed');
-      }
+                            {/* Gender */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Gender</label>
+                                <select
+                                    name="gender"
+                                    value={formData.gender}
+                                    onChange={handleInputChange}
+                                    className="mt-1 block w-full rounded-md border border-blue-500 focus:border-blue-500 focus:ring-blue-500 text-black"
+                                    required
+                                >
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
 
-      const data = await response.json();
-      console.log('Registration successful:', data);
-      // You may redirect the user or display a success message here.
-    } catch (error) {
-      console.error('Registration error:', error);
-      setError('Registration failed. Please try again.');
-    }
-  };
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* NID Number */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">NID Number</label>
+                                <input
+                                    type="text"
+                                    name="nid_no"
+                                    value={formData.nid_no}
+                                    onChange={handleInputChange}
+                                    className="mt-1 block w-full rounded-md border border-blue-500 focus:border-blue-500 focus:ring-blue-500 text-black"
+                                    required
+                                />
+                            </div>
 
-  return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full bg-white rounded-xl shadow-lg p-8">
-        <div className="text-center mb-8">
-          <Image src="/logo.png" alt="Logo" width={64} height={64} />
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            CREATE TOUR GUIDE ACCOUNT
-          </h1>
-          <p className="text-gray-600 text-lg">
-            &quot;JOIN OUR GROWING COMMUNITY NOW&quot;
-          </p>
-          <div className="flex items-center text-center justify-center mt-4">
-            <Link href="/login" className="text-blue-600 hover:text-blue-500 text-sm hover:underline">
-              Already have an account? <span className="font-semibold">Login</span>
-            </Link>
-          </div>
+                            {/* User Type */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">User Type</label>
+                                <select
+                                    name="user_type"
+                                    value={formData.user_type}
+                                    onChange={handleInputChange}
+                                    className="mt-1 block w-full rounded-md border border-blue-500 focus:border-blue-500 focus:ring-blue-500 text-black"
+                                    required
+                                >
+                                    <option value="TourGuide">Tour Guide</option>
+                                    <option value="Tourist">Tourist</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* NID Pic Path */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">NID Picture Path</label>
+                            <input
+                                type="text"
+                                name="nid_pic_path"
+                                value={formData.nid_pic_path}
+                                onChange={handleInputChange}
+                                className="mt-1 block w-full rounded-md border border-blue-500 focus:border-blue-500 focus:ring-blue-500 text-black"
+                                required
+                            />
+                        </div>
+
+                        {/* Profile Pic Path */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Profile Picture Path</label>
+                            <input
+                                type="text"
+                                name="profile_pic_path"
+                                value={formData.profile_pic_path}
+                                onChange={handleInputChange}
+                                className="mt-1 block w-full rounded-md border border-blue-500 focus:border-blue-500 focus:ring-blue-500 text-black"
+                                required
+                            />
+                        </div>
+
+                        {/* Description */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Description</label>
+                            <textarea
+                                name="description"
+                                value={formData.description}
+                                onChange={handleInputChange}
+                                className="mt-1 block w-full rounded-md border border-blue-500 focus:border-blue-500 focus:ring-blue-500 text-black"
+                                rows={3}
+                            />
+                        </div>
+
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200"
+                        >
+                            Sign Up
+                        </button>
+
+                        {/* Error or Success Message */}
+                        {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
+                        {successMessage && <p className="text-green-500 text-sm mt-4">{successMessage}</p>}
+                    </form>
+                </div>
+            </div>
         </div>
+    );
+};
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-3 rounded-lg border border-blue-500 focus:border-blue-500 focus:ring-blue-500 hover:border-blue-500 text-black"
-              required
-            />
-          </div>
-
-          {/* Email and Password */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-blue-500 focus:border-blue-500 focus:ring-blue-500 hover:border-blue-500 text-black"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-blue-500 focus:border-blue-500 focus:ring-blue-500 hover:border-blue-500 text-black"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Phone and Address */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                value={formData.phone_no}
-                onChange={(e) => setFormData({ ...formData, phone_no: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-blue-500 focus:border-blue-500 focus:ring-blue-500 hover:border-blue-500 text-black"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Address
-              </label>
-              <input
-                type="text"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-blue-500 focus:border-blue-500 focus:ring-blue-500 hover:border-blue-500 text-black"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Date of Birth and Gender */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Date of Birth
-              </label>
-              <input
-                type="date"
-                value={formData.dob}
-                onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-blue-500 focus:border-blue-500 focus:ring-blue-500 hover:border-blue-500 text-black"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Gender
-              </label>
-              <select
-                value={formData.gender}
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-blue-500 focus:border-blue-500 focus:ring-blue-500 hover:border-blue-500 text-black"
-              >
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-          </div>
-
-          {/* NID Information */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              NID Number
-            </label>
-            <input
-              type="text"
-              value={formData.nid_no}
-              onChange={(e) => setFormData({ ...formData, nid_no: e.target.value })}
-              className="w-full px-4 py-3 rounded-lg border border-blue-500 focus:border-blue-500 focus:ring-blue-500 hover:border-blue-500 text-black"
-              required
-            />
-          </div>
-
-          {/* NID Photo Upload */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              NID Photo
-            </label>
-            <input
-              type="file"
-              onChange={handleNidFileChange}
-              className="w-full px-4 py-3 rounded-lg border border-blue-500 focus:border-blue-500 focus:ring-blue-500 hover:border-blue-500 text-black"
-              required
-            />
-            {formData.nid_pic_path && (
-              <p className="text-green-600 mt-2">NID Photo uploaded successfully!</p>
-            )}
-          </div>
-
-          {/* Profile Photo Upload */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Profile Photo
-            </label>
-            <input
-              type="file"
-              onChange={handleProfileFileChange}
-              className="w-full px-4 py-3 rounded-lg border border-blue-500 focus:border-blue-500 focus:ring-blue-500 hover:border-blue-500 text-black"
-              required
-            />
-            {formData.profile_pic_path && (
-              <p className="text-green-600 mt-2">Profile Photo uploaded successfully!</p>
-            )}
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-4 py-3 rounded-lg border border-blue-500 focus:border-blue-500 focus:ring-blue-500 hover:border-blue-500 text-black"
-              rows={3}
-              required
-            />
-          </div>
-
-          <div className="pt-6">
-            <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
-            >
-              SIGN UP
-            </button>
-            <p className="mt-4 text-center text-sm text-gray-500">
-              Here, continuing, you agree to our Terms, Policy, and Privacy Service.
-            </p>
-            {error && <p className="mt-2 text-center text-red-600">{error}</p>}
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+export default SignUp;
