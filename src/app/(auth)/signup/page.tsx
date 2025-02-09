@@ -40,7 +40,7 @@ const SignUp = () => {
         setSuccessMessage('');
 
         try {
-            const response = await fetch(`${rootURL}/auth/signup`, {
+            const response = await fetch(`${rootURL}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ const SignUp = () => {
                             <h1 className="text-2xl font-bold text-gray-800 ml-2">Tour Vally</h1>
                         </div>
                         <div className="flex items-center">
-                            <Link href="/signin" className="text-blue-600 hover:text-blue-500 text-sm hover:underline">
+                            <Link href="/login" className="text-blue-600 hover:text-blue-500 text-sm hover:underline">
                                 Already Have An Account? <span className="font-semibold">Login</span>
                             </Link>
                         </div>

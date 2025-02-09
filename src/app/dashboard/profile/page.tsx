@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 interface Profile {
   id: number;
@@ -18,7 +19,12 @@ interface Profile {
 export default function TourProfileViewPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
-
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -104,6 +110,63 @@ export default function TourProfileViewPage() {
     }
   };
 
+//Password change logic:
+
+const handleChangePassword = async () => {
+  setError("");
+
+  if (!oldPassword || !newPassword || !confirmPassword) {
+    setError("All fields are required.");
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    setError("New passwords do not match.");
+    return;
+  }
+
+  setLoading(true);
+
+  // Retrieve the token from cookies
+  const token = document.cookie
+    .split('; ')
+    .find((row) => row.startsWith('access_token='))
+    ?.split('=')[1];
+
+  if (!token) {
+    setError("No access token found. Please log in.");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:3000/auth/change-pass", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        currentPassword: oldPassword,
+        newPassword: newPassword,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to change password.");
+    }
+
+    alert("Password changed successfully! Redirecting to login...");
+    router.push("/login"); // Redirect to login page
+  } catch (err) {
+    setError("An error occurred while changing password.");
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
   if (error) {
     return <p className="text-red-500 text-center mt-4">{error}</p>;
   }
@@ -111,6 +174,8 @@ export default function TourProfileViewPage() {
   if (!profile) {
     return <p className="text-center mt-4">Loading profile...</p>;
   }
+
+
 
   return (
     <div className="max-w-xl mx-auto p-6">
@@ -151,21 +216,55 @@ export default function TourProfileViewPage() {
       </div>
 
       <div className="bg-purple-600 text-white p-4 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4 border-b pb-2">Security</h2>
-        <label className="block mb-2 font-medium">Email Address:</label>
-        <input type="email" value={profile.email} readOnly className="w-full p-2 rounded text-black" />
+      <h2 className="text-xl font-semibold mb-4 border-b pb-2">Security</h2>
+      
+      {error && <p className="text-red-500 mb-2">{error}</p>}
 
-        <label className="block mt-4 mb-2 font-medium">Old Password:</label>
-        <input type="password" placeholder="********" className="w-full p-2 rounded text-black" />
+      <label className="block mb-2 font-medium">Email Address:</label>
+      <input
+        type="email"
+        value={profile.email}
+        readOnly
+        className="w-full p-2 rounded text-black"
+      />
 
-        <label className="block mt-4 mb-2 font-medium">New Password:</label>
-        <input type="password" placeholder="********" className="w-full p-2 rounded text-black" />
+      <label className="block mt-4 mb-2 font-medium">Old Password:</label>
+      <input
+        type="password"
+        placeholder="********"
+        className="w-full p-2 rounded text-black"
+        value={oldPassword}
+        onChange={(e) => setOldPassword(e.target.value)}
+      />
 
-        <label className="block mt-4 mb-2 font-medium">Confirm Password:</label>
-        <input type="password" placeholder="********" className="w-full p-2 rounded text-black" />
+      <label className="block mt-4 mb-2 font-medium">New Password:</label>
+      <input
+        type="password"
+        placeholder="********"
+        className="w-full p-2 rounded text-black"
+        value={newPassword}
+        onChange={(e) => setNewPassword(e.target.value)}
+      />
 
-        <button className="w-full bg-blue-500 mt-4 py-2 rounded hover:bg-blue-600">Save</button>
-      </div>
+      <label className="block mt-4 mb-2 font-medium">Confirm Password:</label>
+      <input
+        type="password"
+        placeholder="********"
+        className="w-full p-2 rounded text-black"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+      />
+
+      <button
+        onClick={handleChangePassword}
+        className="w-full bg-blue-500 mt-4 py-2 rounded hover:bg-blue-600"
+        disabled={loading}
+      >
+        {loading ? "Saving..." : "Save"}
+      </button>
+    </div>
+
+
     </div>
   );
 }
