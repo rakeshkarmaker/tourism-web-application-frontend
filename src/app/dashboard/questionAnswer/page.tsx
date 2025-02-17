@@ -1,233 +1,126 @@
-// "use client"; // Mark this file as a client component
+// "use client";
 
-// import { useState } from 'react';
-
-// export default function HomePage() {
-//   const [inputText, setInputText] = useState('');
-//   const [apiResponse, setApiResponse] = useState(null);
-//   const [loading, setLoading] = useState(false);
-
-//   const handleSubmit = async () => {
-//     setLoading(true);
-//     setApiResponse(null);
-
-//     try {
-//       const response = await fetch('http://localhost:3000/gemini/generate-text', {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify({ promt: inputText }),
-//       });
-
-//       if (!response.ok) {
-//         throw new Error(`HTTP error! status: ${response.status}`);
-//       }
-
-//       const data = await response.json();
-//       setApiResponse(data);
-//     } catch (error) {
-//       console.error("Could not fetch tour plan:", error);
-//       setApiResponse({ error: 'Failed to generate tour plan. Please try again.' });
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleInputChange = (event) => {
-//     setInputText(event.target.value);
-//   };
-
-//   return (
-//     <div>
-//       <h1>Tour Plan Generator</h1>
-//       <div>
-//         <input
-//           type="text"
-//           placeholder="Enter your tour prompt (e.g., Cox's Bazar tour)"
-//           value={inputText}
-//           onChange={handleInputChange}
-//           style={{ width: '500px', padding: '10px', margin: '10px' }}
-//         />
-//         <button
-//           onClick={handleSubmit}
-//           disabled={loading}
-//           style={{ padding: '10px', margin: '10px', cursor: 'pointer' }}
-//         >
-//           {loading ? 'Generating...' : 'Generate Tour Plan'}
-//         </button>
-//       </div>
-
-//       {apiResponse && (
-//         <div style={{ marginTop: '20px', border: '1px solid #ccc', padding: '20px', borderRadius: '5px', backgroundColor: '#f9f9f9' }}>
-//           <h2>API Response:</h2>
-//           <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
-//             {JSON.stringify(apiResponse, null, 2)}
-//           </pre>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-
-
-// "use client"; // Mark this file as a client component
-
-// import { useState } from 'react';
-// import ReactMarkdown from 'react-markdown';
+// import { useState, useCallback } from "react";
+// import ReactMarkdown from "react-markdown";
+// import remarkGfm from "remark-gfm";
+// import {mapAPI} from '../../../../constant';
 
 // export default function HomePage() {
-//   const [inputText, setInputText] = useState('');
+//   const [inputText, setInputText] = useState("");
 //   const [apiResponse, setApiResponse] = useState(null);
 //   const [loading, setLoading] = useState(false);
+//   const YOUR_API_KEY = mapAPI;
 
-//   // Helper function to extract JSON from a Markdown code block
 //   const extractAndParseJSON = (data) => {
-//     // This regex will match a code block starting with "```json" and ending with "```"
-//     const codeBlockRegex = /```json\s*([\s\S]*?)\s*```/;
-//     const match = data.text.match(codeBlockRegex);
-//     if (match && match[1]) {
-//       try {
-//         return JSON.parse(match[1]);
-//       } catch (error) {
-//         console.error("Error parsing JSON:", error);
-//         return null;
-//       }
+//     if (!data?.text) return null;
+//     const match = data.text.match(/```json\s*([\s\S]*?)\s*```/);
+//     if (!match || !match[1]) return null;
+//     try {
+//       return JSON.parse(match[1]);
+//     } catch (error) {
+//       console.error("Error parsing JSON:", error);
+//       return null;
 //     }
-//     return null;
 //   };
 
-//   const handleSubmit = async () => {
+//   const handleSubmit = useCallback(async () => {
+//     if (!inputText.trim()) return;
 //     setLoading(true);
 //     setApiResponse(null);
 
 //     try {
-//       const response = await fetch('http://localhost:3000/gemini/generate-text', {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify({ promt: inputText }),
+//       const response = await fetch("http://localhost:3000/gemini/generate-text", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({ prompt: inputText }),
 //       });
-
-//       if (!response.ok) {
-//         throw new Error(`HTTP error! status: ${response.status}`);
-//       }
 
 //       const data = await response.json();
 //       setApiResponse(data);
 //     } catch (error) {
-//       console.error("Could not fetch tour plan:", error);
-//       setApiResponse({ error: 'Failed to generate tour plan. Please try again.' });
+//       console.error("Error fetching tour plan:", error);
+//       setApiResponse({ error: "Failed to generate tour plan. Please try again." });
 //     } finally {
 //       setLoading(false);
 //     }
+//   }, [inputText]);
+
+//   const handleInputChange = (e) => setInputText(e.target.value);
+//   const parsedData = apiResponse?.text ? extractAndParseJSON(apiResponse) : null;
+
+//   const renderMapLinks = (links) => {
+//     return links.map((link, index) => (
+//       <iframe
+//         key={index}
+//         src={link.map_url}
+//         className="w-full h-64 mt-4 border rounded"
+//         allowFullScreen
+//         title={`Map ${index + 1}`}
+//       ></iframe>
+//     ));
 //   };
 
-//   const handleInputChange = (event) => {
-//     setInputText(event.target.value);
+//   const renderCombinedMap = (links) => {
+//     const allLocations = links.map(link => encodeURIComponent(link.location_name)).join("|");
+//     const combinedMapUrl = `https://www.google.com/maps/embed/v1/place?key=${YOUR_API_KEY}&q=${allLocations}`;
+//     return <iframe src={combinedMapUrl} className="w-full h-96 mt-4 border rounded" allowFullScreen title="Combined Map"></iframe>;
 //   };
-
-//   // Try to parse the API response if available
-//   let parsedData = null;
-//   if (apiResponse && apiResponse.text) {
-//     parsedData = extractAndParseJSON(apiResponse);
-//   }
 
 //   return (
-//     <div style={{ padding: '20px' }}>
-//       <h1>Tour Plan Generator</h1>
-//       <div>
-//         <input
-//           type="text"
-//           placeholder="Enter your tour prompt (e.g., Cox's Bazar tour)"
-//           value={inputText}
-//           onChange={handleInputChange}
-//           style={{ width: '500px', padding: '10px', margin: '10px' }}
-//         />
-//         <button
-//           onClick={handleSubmit}
-//           disabled={loading}
-//           style={{ padding: '10px', margin: '10px', cursor: 'pointer' }}
-//         >
-//           {loading ? 'Generating...' : 'Generate Tour Plan'}
-//         </button>
-//       </div>
-
-//       {apiResponse && (
-//         <div
-//           style={{
-//             marginTop: '20px',
-//             border: '1px solid #ccc',
-//             padding: '20px',
-//             borderRadius: '5px',
-//             backgroundColor: '#f9f9f9',
-//           }}
-//         >
-//           {apiResponse.error && <p>{apiResponse.error}</p>}
-          
-//           {parsedData ? (
-//             <div>
-//               <h2>{parsedData.title}</h2>
-//               <p>{parsedData.description}</p>
-//               <p>
-//                 <strong>Duration:</strong> {parsedData.duration}
-//               </p>
-
-//               <div>
-//                 <h3>Tour Plan:</h3>
-//                 {/* Renders the Markdown (from tour_plan_text) as HTML */}
-//                 <ReactMarkdown>{parsedData.tour_plan_text}</ReactMarkdown>
-//               </div>
-
-//               {parsedData.map_links && parsedData.map_links.length > 0 && (
-//                 <div>
-//                   <h3>Map Links:</h3>
-//                   <ul>
-//                     {parsedData.map_links.map((link, index) => (
-//                       <li key={index}>
-//                         <a href={link.map_url} target="_blank" rel="noopener noreferrer">
-//                           {link.location_name}
-//                         </a>
-//                       </li>
-//                     ))}
-//                   </ul>
-//                 </div>
-//               )}
-//             </div>
-//           ) : (
-//             // Fallback: display the raw response if parsing fails
-//             <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
-//               {JSON.stringify(apiResponse, null, 2)}
-//             </pre>
-//           )}
+//     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-100">
+//       <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-2xl">
+//         <h1 className="text-2xl font-bold text-center text-gray-800 mb-4">Tour Plan Generator 🏝️</h1>
+//         <div className="flex gap-2">
+//           <input type="text" value={inputText} onChange={handleInputChange} placeholder="Enter tour prompt" className="flex-1 p-2 border rounded-md" />
+//           <button onClick={handleSubmit} disabled={loading || !inputText.trim()} className="px-4 py-2 bg-blue-500 text-white rounded-md">{loading ? "Generating..." : "Generate"}</button>
 //         </div>
-//       )}
+//         {loading && <p>⏳ Generating tour plan...</p>}
+//         {apiResponse && (
+//           <div className="mt-4 bg-gray-50 p-4 rounded-md">
+//             {apiResponse.error ? (
+//               <p className="text-red-600">{apiResponse.error}</p>
+//             ) : parsedData ? (
+//               <div>
+//                 <h2 className="text-xl font-semibold text-gray-800">{parsedData.title}</h2>
+//                 <p className="text-gray-700">{parsedData.description}</p>
+//                 <p className="text-gray-700"><strong>Duration:</strong> {parsedData.duration}</p>
+//                 <ReactMarkdown className="prose" remarkPlugins={[remarkGfm]}>{parsedData.tour_plan_text}</ReactMarkdown>
+//                 {parsedData.map_links && renderMapLinks(parsedData.map_links)}
+//                 {parsedData.map_links && parsedData.map_links.length > 1 && (
+//                   <div className="mt-6">
+//                     <h3 className="text-lg font-semibold text-gray-800">Combined Map:</h3>
+//                     {renderCombinedMap(parsedData.map_links)}
+//                   </div>
+//                 )}
+//               </div>
+//             ) : (
+//               <pre>{JSON.stringify(apiResponse, null, 2)}</pre>
+//             )}
+//           </div>
+//         )}
+//       </div>
 //     </div>
 //   );
 // }
-
-
 
 "use client";
 
 import { useState, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { mapAPI } from "../../../../constant";
 
 export default function HomePage() {
   const [inputText, setInputText] = useState("");
   const [apiResponse, setApiResponse] = useState(null);
   const [loading, setLoading] = useState(false);
+  // const YOUR_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; // Use env variable
+  const YOUR_API_KEY = mapAPI;
 
-  // Extract and parse JSON from Markdown response
-  const extractAndParseJSON = (data: any) => {
+  const extractAndParseJSON = (data) => {
     if (!data?.text) return null;
-
     const match = data.text.match(/```json\s*([\s\S]*?)\s*```/);
     if (!match || !match[1]) return null;
-
     try {
       return JSON.parse(match[1]);
     } catch (error) {
@@ -236,10 +129,8 @@ export default function HomePage() {
     }
   };
 
-  // Handle API request
   const handleSubmit = useCallback(async () => {
     if (!inputText.trim()) return;
-
     setLoading(true);
     setApiResponse(null);
 
@@ -250,58 +141,117 @@ export default function HomePage() {
         body: JSON.stringify({ prompt: inputText }),
       });
 
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
       const data = await response.json();
+      console.log("API Response:", data); // Debugging
       setApiResponse(data);
     } catch (error) {
-      console.error("Could not fetch tour plan:", error);
+      console.error("Error fetching tour plan:", error);
       setApiResponse({ error: "Failed to generate tour plan. Please try again." });
     } finally {
       setLoading(false);
     }
   }, [inputText]);
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputText(event.target.value);
+  const handleInputChange = (e) => setInputText(e.target.value);
+  const parsedData = apiResponse?.text ? extractAndParseJSON(apiResponse) : null;
+
+  // --- Updated Individual Map Render ---
+  // Uses location_name to build a proper embed URL
+  const renderMapLinks = (links) => {
+    if (!Array.isArray(links) || links.length === 0) return null;
+    return links.map((link, index) => {
+      if (!link.location_name) return null; // Skip invalid names
+
+      const locationEncoded = encodeURIComponent(link.location_name);
+      const embedUrl = `https://www.google.com/maps/embed/v1/place?key=${YOUR_API_KEY}&q=${locationEncoded}`;
+
+      return (
+        <iframe
+          key={index}
+          src={embedUrl}
+          className="w-full h-64 mt-4 border rounded"
+          allowFullScreen
+          loading="lazy"
+          title={`Map ${index + 1}: ${link.location_name}`}
+        />
+      );
+    });
   };
 
-  // Parse API response
-  let parsedData = apiResponse && apiResponse.text ? extractAndParseJSON(apiResponse) : null;
+  // --- Updated Combined Map Render ---
+  // Uses Directions embed mode when there are multiple locations
+  const renderCombinedMap = (links) => {
+    if (!Array.isArray(links) || links.length === 0) return null;
+
+    // Filter out any invalid or missing location names
+    const validLinks = links.filter((link) => link.location_name);
+    if (validLinks.length === 0) return null;
+
+    // If only one location, fall back to a single place map
+    if (validLinks.length === 1) {
+      const singleLocation = encodeURIComponent(validLinks[0].location_name);
+      const singleMapUrl = `https://www.google.com/maps/embed/v1/place?key=${YOUR_API_KEY}&q=${singleLocation}`;
+      return (
+        <iframe
+          src={singleMapUrl}
+          className="w-full h-96 mt-4 border rounded"
+          allowFullScreen
+          loading="lazy"
+          title={`Combined Map (Single): ${validLinks[0].location_name}`}
+        />
+      );
+    }
+
+    // For multiple locations, use Directions mode
+    const origin = encodeURIComponent(validLinks[0].location_name);
+    const destination = encodeURIComponent(validLinks[validLinks.length - 1].location_name);
+    const waypoints = validLinks
+      .slice(1, -1)
+      .map((link) => encodeURIComponent(link.location_name))
+      .join("|");
+
+    let combinedMapUrl = `https://www.google.com/maps/embed/v1/directions?key=${YOUR_API_KEY}&origin=${origin}&destination=${destination}`;
+    if (waypoints) {
+      combinedMapUrl += `&waypoints=${waypoints}`;
+    }
+
+    return (
+      <iframe
+        src={combinedMapUrl}
+        className="w-full h-96 mt-4 border rounded"
+        allowFullScreen
+        loading="lazy"
+        title="Combined Map (Multiple Locations)"
+      />
+    );
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-100">
       <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-2xl">
-        <h1 className="text-2xl font-bold text-center text-gray-800 mb-4">
-          Tour Plan Generator 🏝️
-        </h1>
-
-        {/* Input Field & Button */}
+        <h1 className="text-2xl font-bold text-center text-gray-800 mb-4">Tour Plan Generator 🏝️</h1>
         <div className="flex gap-2">
           <input
             type="text"
-            placeholder="Enter your tour prompt (e.g., Cox's Bazar tour)"
             value={inputText}
             onChange={handleInputChange}
-            className="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            placeholder="Enter tour prompt"
+            className="flex-1 p-2 border rounded-md"
+            disabled={loading}
           />
           <button
             onClick={handleSubmit}
-            disabled={!inputText.trim() || loading}
-            className={`px-4 py-2 text-white font-semibold rounded-md transition ${
-              loading ? "bg-gray-500 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"
-            }`}
+            disabled={loading || !inputText.trim()}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md"
           >
             {loading ? "Generating..." : "Generate"}
           </button>
         </div>
 
-        {/* Loading Indicator */}
-        {loading && <p className="text-gray-500 mt-2">⏳ Generating tour plan...</p>}
+        {loading && <p>⏳ Generating tour plan...</p>}
 
-        {/* Response Section */}
         {apiResponse && (
-          <div className="mt-6 border rounded-md p-4 bg-gray-50">
+          <div className="mt-4 bg-gray-50 p-4 rounded-md">
             {apiResponse.error ? (
               <p className="text-red-600">{apiResponse.error}</p>
             ) : parsedData ? (
@@ -311,40 +261,19 @@ export default function HomePage() {
                 <p className="text-gray-700">
                   <strong>Duration:</strong> {parsedData.duration}
                 </p>
-
-                {/* Markdown-rendered tour plan */}
-                <div className="mt-4">
-                  <h3 className="text-lg font-semibold text-gray-800">Tour Plan:</h3>
-                  <ReactMarkdown className="prose" remarkPlugins={[remarkGfm]}>
-                    {parsedData.tour_plan_text}
-                  </ReactMarkdown>
-                </div>
-
-                {/* Map Links */}
-                {parsedData.map_links && parsedData.map_links.length > 0 && (
-                  <div className="mt-4">
-                    <h3 className="text-lg font-semibold text-gray-800">Map Links:</h3>
-                    <ul className="list-disc pl-5">
-                      {parsedData.map_links.map((link: any, index: number) => (
-                        <li key={index}>
-                          <a
-                            href={link.map_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-500 hover:underline"
-                          >
-                            {link.location_name}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
+                <ReactMarkdown className="prose" remarkPlugins={[remarkGfm]}>
+                  {parsedData.tour_plan_text}
+                </ReactMarkdown>
+                {renderMapLinks(parsedData.map_links)}
+                {parsedData.map_links && parsedData.map_links.length > 1 && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold text-gray-800">Combined Map:</h3>
+                    {renderCombinedMap(parsedData.map_links)}
                   </div>
                 )}
               </div>
             ) : (
-              <pre className="text-sm text-gray-600 bg-gray-200 p-2 rounded-md">
-                {JSON.stringify(apiResponse, null, 2)}
-              </pre>
+              <pre>{JSON.stringify(apiResponse, null, 2)}</pre>
             )}
           </div>
         )}
