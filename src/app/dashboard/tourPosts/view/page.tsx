@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 
-const rootURL = process.env.BASE_URL; 
+const rootURL = process.env.NEXT_PUBLIC_BASE_URL; 
 interface GuidePost {
   id: string;
   title: string;

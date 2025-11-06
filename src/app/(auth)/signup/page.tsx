@@ -5,7 +5,7 @@ import {useState } from 'react';
 import Image from 'next/image';
 import useAuthRedirect from '@/app/_components/hooks/useAuthRedirect';
 
-const rootURL = process.env.BASE_URL;
+const rootURL = process.env.NEXT_PUBLIC_BASE_URL;
 
 
 const SignUp = () => {

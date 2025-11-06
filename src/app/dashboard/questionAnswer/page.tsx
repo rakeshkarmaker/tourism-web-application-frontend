@@ -289,8 +289,8 @@ import { useState, useCallback, ChangeEvent } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-const apiUrl = process.env.API_URL;
-const mapAPI = process.env.GOOGLE_MAP_SECRETCODE;
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+const mapAPI = process.env.NEXT_PUBLIC_GOOGLE_MAP;
 
 // Types
 type MapLink = {
