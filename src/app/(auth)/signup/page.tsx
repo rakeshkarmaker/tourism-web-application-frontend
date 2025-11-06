@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
-import Cookies from 'js-cookie';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import {useState } from 'react';
 import Image from 'next/image';
 import { rootURL } from '../../../../constant';
 import useAuthRedirect from '@/app/_components/hooks/useAuthRedirect';
