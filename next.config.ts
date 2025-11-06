@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
-import {domain} from "./src/app/lib/constant";
+
+const domain = process.env.DOMAIN_PRIVATE ||'localhost';
 const nextConfig: NextConfig = {
   /* config options here */
   //
