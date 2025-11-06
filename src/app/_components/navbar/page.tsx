@@ -14,7 +14,7 @@ import Link from "next/link";
 import { useRouter, useParams, usePathname } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
-import { rootURL } from '../../../../constant';
+import { rootURL } from '../../lib/constant';
 
 export default function Navbar() {
   const router = useRouter();

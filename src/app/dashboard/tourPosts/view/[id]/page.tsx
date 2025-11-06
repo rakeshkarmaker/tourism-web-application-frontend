@@ -3,7 +3,7 @@
 import { useEffect, useState, FormEvent } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
-import { rootURL } from "../../../../../../constant";
+const rootURL = process.env.BASE_URL;
 // import Link from "next/link";
 
 interface GuidePostDetails {

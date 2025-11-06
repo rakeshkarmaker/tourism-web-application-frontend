@@ -288,7 +288,9 @@
 import { useState, useCallback, ChangeEvent } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { mapAPI } from "../../../../constant";
+
+const apiUrl = process.env.API_URL;
+const mapAPI = process.env.GOOGLE_MAP_SECRETCODE;
 
 // Types
 type MapLink = {
@@ -313,7 +315,6 @@ export default function HomePage() {
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const YOUR_API_KEY = mapAPI;
 
   const extractAndParseJSON = (data: ApiResponse): ParsedData | null => {
     if (!data?.text) return null;
@@ -335,7 +336,7 @@ export default function HomePage() {
     setApiResponse(null);
 
     try {
-      const response = await fetch("http://localhost:3000/gemini/generate-text", {
+      const response = await fetch(`${apiUrl}gemini/generate-text`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: inputText }),
@@ -362,7 +363,7 @@ export default function HomePage() {
       if (!link.location_name) return null;
 
       const locationEncoded = encodeURIComponent(link.location_name);
-      const embedUrl = `https://www.google.com/maps/embed/v1/place?key=${YOUR_API_KEY}&q=${locationEncoded}`;
+      const embedUrl = `https://www.google.com/maps/embed/v1/place?key=${mapAPI}&q=${locationEncoded}`;
 
       return (
         <iframe
@@ -385,7 +386,7 @@ export default function HomePage() {
 
     if (validLinks.length === 1) {
       const singleLocation = encodeURIComponent(validLinks[0].location_name);
-      const singleMapUrl = `https://www.google.com/maps/embed/v1/place?key=${YOUR_API_KEY}&q=${singleLocation}`;
+      const singleMapUrl = `https://www.google.com/maps/embed/v1/place?key=${mapAPI}&q=${singleLocation}`;
       return (
         <iframe
           src={singleMapUrl}
@@ -401,7 +402,7 @@ export default function HomePage() {
     const destination = encodeURIComponent(validLinks[validLinks.length - 1].location_name);
     const waypoints = validLinks.slice(1, -1).map((link) => encodeURIComponent(link.location_name)).join("|");
 
-    let combinedMapUrl = `https://www.google.com/maps/embed/v1/directions?key=${YOUR_API_KEY}&origin=${origin}&destination=${destination}`;
+    let combinedMapUrl = `https://www.google.com/maps/embed/v1/directions?key=${mapAPI}&origin=${origin}&destination=${destination}`;
     if (waypoints) combinedMapUrl += `&waypoints=${waypoints}`;
 
     return (

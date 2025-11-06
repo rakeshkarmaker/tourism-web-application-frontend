@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import {domain} from "./constant";
+import {domain} from "./src/app/lib/constant";
 const nextConfig: NextConfig = {
   /* config options here */
   //

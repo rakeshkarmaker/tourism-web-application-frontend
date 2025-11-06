@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
+const apiUrl = process.env.API_URL;
+
 interface Profile {
   id: number;
   name: string;
@@ -38,7 +40,7 @@ export default function TourProfileViewPage() {
           return;
         }
 
-        const res = await fetch('http://localhost:3000/tour-profile/view', {
+        const res = await fetch(`${apiUrl}/tour-profile/view`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -82,7 +84,7 @@ export default function TourProfileViewPage() {
         return;
       }
 
-      const res = await fetch('http://localhost:3000/tour-profile/edit', {
+      const res = await fetch(`${apiUrl}/tour-profile/edit`, {
         method: 'PUT', // Using PUT as the method
         headers: {
           'Content-Type': 'application/json',
@@ -140,7 +142,7 @@ const handleChangePassword = async () => {
   }
 
   try {
-    const res = await fetch("http://localhost:3000/auth/change-pass", {
+    const res = await fetch(`${apiUrl}/auth/change-pass`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

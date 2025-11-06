@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import {useState } from 'react';
 import Image from 'next/image';
-import { rootURL } from '../../../../constant';
 import useAuthRedirect from '@/app/_components/hooks/useAuthRedirect';
+
+const rootURL = process.env.BASE_URL;
+
 
 const SignUp = () => {
     useAuthRedirect("/dashboard/overview");

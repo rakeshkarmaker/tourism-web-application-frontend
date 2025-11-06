@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
-import { rootURL } from '../../../../../constant';
+const rootURL = process.env.BASE_URL;
+
 
 export default function CreateGuidePost() {
     const router = useRouter();
