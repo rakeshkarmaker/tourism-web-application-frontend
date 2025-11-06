@@ -3,7 +3,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const baseUrl = process.env.BASE_URL;
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
 export default function SignUpHero() {
   const router = useRouter();

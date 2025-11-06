@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
-const rootURL = process.env.BASE_URL;
+const rootURL = process.env.NEXT_PUBLIC_BASE_URL;
 
 
 export default function CreateGuidePost() {
